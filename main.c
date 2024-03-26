@@ -2,6 +2,10 @@
 #include <stdlib.h>
 
 
+// Memory Size
+
+#define SIZE 1000
+
 // Input/Output operations
 
 #define READ 10
@@ -28,8 +32,10 @@
 
 
 void load(int memory[], int instructionCounter);
-void execute();
-void dump();
+void execute(int memory[], int* accumulator, int* instructionCounter, 
+            int* instructionRegister, int* operationCode, int* operand);
+void dump(int memory[], int* accumulator, int* instructionCounter, 
+            int* instructionRegister, int* operationCode, int* operand);
 
 
 int main(void) {
@@ -43,7 +49,7 @@ int main(void) {
     "*** Type the sentinel -99999 to stop entering ***",
     "*** Your Program ***");
 
-    int memory[100] = {0};
+    int memory[SIZE] = {0};
     
     int accumulator = 0;
     int instructionCounter = 0;
@@ -53,11 +59,8 @@ int main(void) {
 
     load(memory, instructionCounter);
 
-    for (size_t i = 0; i < 100; i++) {
-
-        printf("%d", memory[i]);
-
-    }
+    execute(memory, &accumulator, &instructionCounter,
+           &instructionRegister, &operationCode, &operand); 
 
 }
 
@@ -103,3 +106,242 @@ void load(int memory[], int instructionCounter) {
 }
 
 
+void execute(int memory[], int* accumulator, int* instructionCounter, 
+            int* instructionRegister, int* operationCode, int* operand) {
+
+    int sentinel = 0;
+
+    while (sentinel == 0) {
+
+        *instructionRegister = memory[*instructionCounter];
+
+        *operationCode = *instructionRegister / 100;
+        *operand = *instructionRegister % 100;
+
+
+        switch (*operationCode) {
+
+            case READ:
+
+                printf("? ");    
+                scanf("%d", &memory[*operand]);
+
+                
+                if (memory[*operand] < 9999 && memory[*operand] > -9999) {
+
+                ++*instructionCounter;
+                
+                break;
+                
+                } else {
+
+                    printf("%s\n%s\n", "*** ACCUMULATOR OVERFLOW ***", "*** Please insert a valid number ***");
+                    
+                    break;
+
+                }
+
+            case WRITE:
+
+                printf(memory[*operand] > 0 ? "%+05d\n" : "%05d\n", memory[*operand]);
+                ++*instructionCounter;
+
+                break;
+
+            case LOAD:
+
+                *accumulator = memory[*operand];
+                ++*instructionCounter;
+
+                break;
+
+            case STORE:
+
+                memory[*operand] = *accumulator;
+                ++*instructionCounter;
+
+                break;
+
+            case ADD:
+
+                if (*accumulator + memory[*operand] < 9999 && *accumulator + memory[*operand] > -9999) {
+                
+                    *accumulator += memory[*operand];
+                    ++*instructionCounter;
+
+                    break;
+                
+                } else {
+
+                    printf("*** ERROR: ACCUMULATOR OVERFLOW ***\n");
+                    printf("*** Simpletron Execution abnormally terminated ***\n");
+
+                    dump(memory, accumulator, instructionCounter,
+                    instructionRegister, operationCode, operand);
+
+                    sentinel = -1;
+                    
+                    break;
+
+                }
+
+            case SUBTRACT:
+
+               if (*accumulator - memory[*operand] < 9999 && *accumulator - memory[*operand] > -9999) {
+                
+                    *accumulator -= memory[*operand];
+                    ++*instructionCounter;
+
+                    break;
+                
+                } else {
+
+                    printf("*** ERROR: ACCUMULATOR OVERFLOW ***\n");
+                    printf("*** Simpletron Execution abnormally terminated ***\n");
+
+                    dump(memory, accumulator, instructionCounter,
+                    instructionRegister, operationCode, operand);
+
+                    sentinel = -1;
+                    
+                    break;
+
+                }
+
+            case DIVIDE:
+
+                if (memory[*operand] != 0) {
+                
+                    *accumulator /= memory[*operand];
+                    ++*instructionCounter;
+
+                    break;
+                
+                } else {
+
+                    printf("*** ERROR: DIVISION BY 0 ***\n");
+                    printf("*** Simpletron Execution abnormally terminated ***\n");
+
+                    dump(memory, accumulator, instructionCounter,
+                    instructionRegister, operationCode, operand);
+
+                    sentinel = -1;
+                    
+                    break;
+
+                }
+
+            case MULTIPLY:
+
+                if (*accumulator * memory[*operand] < 9999 && *accumulator * memory[*operand] > -9999) {
+                
+                    *accumulator *= memory[*operand];
+                    ++*instructionCounter;
+
+                    break;
+                
+                } else {
+
+                    printf("*** ERROR: ACCUMULATOR OVERFLOW ***\n");
+                    printf("*** Simpletron Execution abnormally terminated ***\n");
+
+                    dump(memory, accumulator, instructionCounter,
+                    instructionRegister, operationCode, operand);
+
+                    sentinel = -1;
+                    
+                    break;
+
+                }
+
+            case BRANCH:
+
+                *instructionCounter = *operand;
+
+                break;
+
+            case BRANCHNEG:
+
+                if (*accumulator < 0) {
+
+                    *instructionCounter = *operand;
+                
+                } else {
+
+                    ++*instructionCounter;
+
+                }
+
+                break;
+            
+            case BRANCHZERO:
+
+                if (*accumulator == 0) {
+
+                    *instructionCounter = *operand;
+
+                } else {
+
+                    *instructionCounter++;
+
+                }
+
+                break;
+
+            case HALT:
+
+                printf("*** Simpletron Execution Terminated ***\n");
+                
+                dump(memory, accumulator, instructionCounter,
+                    instructionRegister, operationCode, operand);
+
+                sentinel = -1;
+
+                break;
+
+        }
+    }
+}
+
+
+void dump(int memory[], int* accumulator, int* instructionCounter, 
+            int* instructionRegister, int* operationCode, int* operand) {
+
+    printf("\n%s\n", "REGISTERS:");
+    printf("%s","accumulator: ");
+    printf(*accumulator > 0 ? "%+05d\n" : "%05d\n", *accumulator);
+    printf("instructionCounter: %02d\n", *instructionCounter);
+    printf("%s","instructionRegister: ");
+    printf(*instructionRegister > 0 ? "%+05d\n" : "%05d\n", *instructionRegister);
+    printf("operationCode: %02d\n", *operationCode);
+    printf("operand: %02d\n", *operand);
+
+    
+    printf("\n%s\n\n", "MEMORY: ");
+
+    
+    for (size_t j = 0; j < 10; j++) {
+
+        printf("\t%5lu", j);
+
+    }
+
+    
+    printf("\n\n");
+    
+    
+    for (size_t i = 0; i < SIZE; i++) {
+
+        if (i % 10 == 0) {
+
+            printf("%lu\t", i);
+
+        }
+
+        printf(memory[i] >= 0 ? "%+05d" : "%05d", memory[i]);
+        printf((i+1) % 10 == 0 ? "\n" : "\t");
+
+    }
+
+    printf("\n");
+}
