@@ -55,7 +55,7 @@ int main(void) {
 
     int memory[SIZE] = {0};
     
-    double accumulator = 0x0;
+    int accumulator = 0x0;
     int instructionCounter = 0x0;
     int instructionRegister = 0x0;
     int operationCode = 0x0;
@@ -170,7 +170,7 @@ void execute(int memory[], int* accumulator, int* instructionCounter,
 
             case STORE:
 
-                memory[*operand] = (int) *accumulator;
+                memory[*operand] = *accumulator;
                 ++*instructionCounter;
 
                 break;
@@ -225,7 +225,7 @@ void execute(int memory[], int* accumulator, int* instructionCounter,
 
                 if (memory[*operand] != 0) {
                 
-                    *accumulator /= (double) memory[*operand];
+                    *accumulator /= memory[*operand];
                     ++*instructionCounter;
 
                     break;
