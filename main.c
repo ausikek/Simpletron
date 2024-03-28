@@ -9,30 +9,30 @@
 
 // Input/Output operations
 
-#define READ 10
-#define WRITE 11
-#define NEWLINE 12
+#define READ 0x0001
+#define WRITE 0x0002
+#define NEWLINE 0x0003
 
 // Load/Store operations
 
-#define LOAD 20
-#define STORE 21
+#define LOAD 0x0004
+#define STORE 0x0005
 
 // Arithmetic operations
 
-#define ADD 30
-#define SUBTRACT 31
-#define DIVIDE 32
-#define MULTIPLY 33
-#define MODULUS 34
-#define EXPONENTIATION 35
+#define ADD 0x0006
+#define SUBTRACT 0x0007
+#define DIVIDE 0x0008
+#define MULTIPLY 0x0009
+#define MODULUS 0x000A
+#define EXPONENTIATION 0x000B
 
 // Transfer-of-control operations
 
-#define BRANCH 40
-#define BRANCHNEG 41
-#define BRANCHZERO 42
-#define HALT 43
+#define BRANCH 0x000C
+#define BRANCHNEG 0X000D
+#define BRANCHZERO 0x000E
+#define HALT 0x000F
 
 
 void load(int memory[], int instructionCounter);
@@ -50,16 +50,16 @@ int main(void) {
     "*** (or data word) at a time. I will type the ***",
     "*** location number and a question mark (?).  ***",
     "*** You then type the word for that location. ***",
-    "*** Type the sentinel -999999 to stop entering ***",
+    "*** Type the sentinel 0xFDEAD to stop entering ***",
     "*** Your Program ***");
 
     int memory[SIZE] = {0};
     
-    int accumulator = 0;
-    int instructionCounter = 0;
-    int instructionRegister = 0;
-    int operationCode = 0;
-    int operand = 0;
+    double accumulator = 0x0;
+    int instructionCounter = 0x0;
+    int instructionRegister = 0x0;
+    int operationCode = 0x0;
+    int operand = 0x0;
 
     load(memory, instructionCounter);
 
@@ -81,9 +81,9 @@ void load(int memory[], int instructionCounter) {
 
             printf("%02d ? ", instructionCounter);
 
-            scanf("%d", &input);
+            scanf("%x", &input);
 
-            if (input == -999999) {
+            if (input == 0xFDEAD) {
 
                 printf("%s\n%s\n",
                 "*** Program loading complete ***",
@@ -93,7 +93,7 @@ void load(int memory[], int instructionCounter) {
 
                 break;                   
 
-            } else if (input < -99999 || input > 99999) {
+            } else if (input < -0xF3E7 || input > 0xF3E7) {
 
                 printf("\nPlease insert a valid instruction.\n");          
 
@@ -119,8 +119,8 @@ void execute(int memory[], int* accumulator, int* instructionCounter,
 
         *instructionRegister = memory[*instructionCounter];
 
-        *operationCode = *instructionRegister / 1000;
-        *operand = *instructionRegister % 1000;
+        *operationCode = *instructionRegister / 0x1000;
+        *operand = *instructionRegister % 0x1000;
 
 
         switch (*operationCode) {
@@ -131,7 +131,7 @@ void execute(int memory[], int* accumulator, int* instructionCounter,
                 scanf("%d", &memory[*operand]);
 
                 
-                if (memory[*operand] < 99999 && memory[*operand] > -99999) {
+                if (memory[*operand] < 2147483647 && memory[*operand] > -2147483648) {
 
                     ++*instructionCounter;
                     
@@ -139,7 +139,8 @@ void execute(int memory[], int* accumulator, int* instructionCounter,
                 
                 } else {
 
-                    printf("%s\n%s\n", "*** ACCUMULATOR OVERFLOW ***", "*** Please insert a valid number ***");
+                    printf("%s\n%s\n", "*** INTEGER OVERFLOW ***", 
+                                    "*** Please insert a valid number ***");
                     
                     break;
 
@@ -147,7 +148,7 @@ void execute(int memory[], int* accumulator, int* instructionCounter,
 
             case WRITE:
 
-                printf(memory[*operand] > 0 ? "%+06d\n" : "%06d\n", memory[*operand]);
+                printf(memory[*operand] > 0 ? "%+05d\n" : "%05d\n", memory[*operand]);
 
                 ++*instructionCounter;
 
@@ -169,14 +170,14 @@ void execute(int memory[], int* accumulator, int* instructionCounter,
 
             case STORE:
 
-                memory[*operand] = *accumulator;
+                memory[*operand] = (int) *accumulator;
                 ++*instructionCounter;
 
                 break;
 
             case ADD:
 
-                if (*accumulator + memory[*operand] < 99999 && *accumulator + memory[*operand] > -99999) {
+                if (*accumulator + memory[*operand] < 2147483647 && *accumulator + memory[*operand] > -2147483648) {
                 
                     *accumulator += memory[*operand];
                     ++*instructionCounter;
@@ -199,7 +200,7 @@ void execute(int memory[], int* accumulator, int* instructionCounter,
 
             case SUBTRACT:
 
-               if (*accumulator - memory[*operand] < 99999 && *accumulator - memory[*operand] > -99999) {
+               if (*accumulator - memory[*operand] < 2147483647 && *accumulator - memory[*operand] > -2147483648) {
                 
                     *accumulator -= memory[*operand];
                     ++*instructionCounter;
@@ -224,7 +225,7 @@ void execute(int memory[], int* accumulator, int* instructionCounter,
 
                 if (memory[*operand] != 0) {
                 
-                    *accumulator /= memory[*operand];
+                    *accumulator /= (double) memory[*operand];
                     ++*instructionCounter;
 
                     break;
@@ -245,7 +246,7 @@ void execute(int memory[], int* accumulator, int* instructionCounter,
 
             case MULTIPLY:
 
-                if (*accumulator * memory[*operand] < 99999 && *accumulator * memory[*operand] > -99999) {
+                if (*accumulator * memory[*operand] < 2147483647 && *accumulator * memory[*operand] > -2147483648) {
                 
                     *accumulator *= memory[*operand];
                     ++*instructionCounter;
@@ -291,7 +292,7 @@ void execute(int memory[], int* accumulator, int* instructionCounter,
 
             case EXPONENTIATION:
 
-                if (pow(*accumulator, memory[*operand]) < 99999 && pow(*accumulator, memory[*operand]) >-99999) {
+                if (pow(*accumulator, memory[*operand]) < 2147483647 && pow(*accumulator, memory[*operand]) > -2147483648) {
 
                     *accumulator = (int) pow(*accumulator, memory[*operand]);
                     ++*instructionCounter;
@@ -389,10 +390,10 @@ void dump(int memory[], int* accumulator, int* instructionCounter,
 
     printf("\n%s\n", "REGISTERS:");
     printf("%s","accumulator: ");
-    printf(*accumulator > 0 ? "%+06d\n" : "%06d\n", *accumulator);
+    printf(*accumulator > 0 ? "%05x\n" : "%05x\n", *accumulator);
     printf("instructionCounter: %02d\n", *instructionCounter);
     printf("%s","instructionRegister: ");
-    printf(*instructionRegister > 0 ? "%+06d\n" : "%06d\n", *instructionRegister);
+    printf(*instructionRegister > 0 ? "%05x\n" : "%05x\n", *instructionRegister);
     printf("operationCode: %02d\n", *operationCode);
     printf("operand: %02d\n", *operand);
 
@@ -402,7 +403,7 @@ void dump(int memory[], int* accumulator, int* instructionCounter,
     
     for (size_t j = 0; j < 10; j++) {
 
-        printf("\t%5lu", j);
+        printf("\t%10lu", j);
 
     }
 
@@ -418,7 +419,7 @@ void dump(int memory[], int* accumulator, int* instructionCounter,
 
         }
 
-        printf(memory[i] >= 0 ? "%+06d" : "%06d", memory[i]);
+        printf(memory[i] >= 0 ? "0x%08x" : "%08x", memory[i]);
         printf((i+1) % 10 == 0 ? "\n" : "\t");
 
     }
